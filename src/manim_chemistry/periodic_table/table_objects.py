@@ -25,7 +25,7 @@ class MElementObject(VGroup):
         coloring=BLACK,
         fill_colors=(WHITE, BLUE),
         gradient=10,
-        opacity=1,
+        opacity=0.8,
         text_color=BLACK,
         **kwargs,
     ):
@@ -36,8 +36,8 @@ class MElementObject(VGroup):
         self.element_symbol = element_symbol
         self.coloring = coloring
         self.fill_colors = fill_colors
-        self.gradient = gradient
-        self.opacity = opacity
+        self.gradient = 0
+        self.opacity = 0.8
         self.text_color = text_color
 
         element_frame = self.create_frame_with_text()
@@ -59,7 +59,7 @@ class MElementObject(VGroup):
         frame_rectangle = (
             Rectangle(
                 height=2.8,
-                width=2,
+                width=2.8,
                 color=self.coloring,
                 stroke_width=0.2,
                 fill_opacity=self.opacity,
@@ -74,7 +74,7 @@ class MElementObject(VGroup):
         frame_rectangle = self.create_frame_base()
         symbol_text = (
             Text(self.element_symbol, color=self.text_color)
-            .scale(1.1)
+            .scale(2.4)
             .move_to(frame_rectangle.get_center())
         )
         name_text = (
@@ -85,11 +85,12 @@ class MElementObject(VGroup):
         atomic_number_text = (
             Tex(str(self.atomic_number), color=self.text_color)
             .scale(0.65)
-            .next_to(
-                frame_rectangle,
-                frame_rectangle.get_top() + frame_rectangle.get_left(),
-                buff=-0.35,
-            )
+            .next_to(frame_rectangle, -DOWN, buff=-0.4)
+        )
+        atomic_mass_text = (
+            Tex(str(self.atomic_mass), color=self.text_color)
+            .scale(0.65)
+            .next_to(frame_rectangle, DOWN, buff=-0.4)
         )
 
         ratio = self.frame_name_width_ratio(frame=frame_rectangle, name_text=name_text)
@@ -103,9 +104,10 @@ class MElementObject(VGroup):
         if self.atomic_number > 100:
             shifting_ammount += 0.15
 
-        atomic_number_text.shift(shifting_ammount * RIGHT)
+        #atomic_number_text.shift(shifting_ammount * RIGHT)
+        #atomic_mass_text.shift(-shifting_ammount * RIGHT)
 
-        return VGroup(frame_rectangle, symbol_text, name_text, atomic_number_text)
+        return VGroup(frame_rectangle, symbol_text, atomic_number_text, atomic_mass_text)
 
     def from_csv_file_data(filename, atomic_number, **kwargs):
         # TODO: Add option to set manually colors.
