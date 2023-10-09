@@ -16,10 +16,12 @@ manim -pqh draw_names.py Main
 
 class Main(Scene):
     def construct(self):
-        frases = ["dia", "do", "quimico"]
+        phrases = ["dia", "do", "quimico"]
+        horizontal_scale = 1
+        vertical_scale = 1
         finder = PositionFinder(files_path)
         element_assignment, letter_assigment = finder.get_assigments(
-            frases)
+            phrases)
         periodic_table = PeriodicTable(files_path / "Elementos.csv")
         table, elements = periodic_table.get_elements()
 
@@ -29,7 +31,8 @@ class Main(Scene):
             self.add(element)
             replicated_elements.append(ReplicatedElement(element))
         animations = []
-        position_transformer = PositionTransformer(frases, files_path)
+        position_transformer = PositionTransformer(
+            phrases, files_path, horizontal_scale, vertical_scale)
         for element in replicated_elements:
             animations.append(element.move_to_assignments_animation(
                 element_assignment, position_transformer))

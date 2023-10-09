@@ -9,7 +9,7 @@ files_path = script_path / "manim-Chemistry/examples/element_files"
 
 
 class PositionTransformer:
-    def __init__(self, phrases, csv_path):
+    def __init__(self, phrases, csv_path, horizontal_scale=1, vertical_scale=1):
         assignment_finder = AssignmentFinder(csv_path)
         self.offset_rows = (len(phrases)-1)/2
         max_phrase_length = max(
@@ -18,7 +18,7 @@ class PositionTransformer:
 
         base_element = MElementObject()
         self.mult_array = np.array(
-            [base_element.get_width(), -base_element.get_height(), 0])*1.4*0.25
+            [base_element.get_width()*vertical_scale, -base_element.get_height()*horizontal_scale, 0])*1.4*0.25
 
     def get_transformed_position(self, position):
         base_position = np.array(
