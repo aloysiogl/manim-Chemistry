@@ -7,11 +7,19 @@ script_path = Path(__file__).absolute().parent
 files_path = script_path / "element_files"
 
 
+"""
+Comandos para compilar a animacao, utilize a opção -pqh para alta qualidade:
+manim -pql draw_names.py Main
+manim -pqh draw_names.py Main
+"""
+
+
 class Main(Scene):
     def construct(self):
+        frases = ["dia", "do", "quimico"]
         finder = PositionFinder(files_path)
         element_assignment, letter_assigment = finder.get_assigments(
-            ["alunos de", "", "quimica"])
+            frases)
         periodic_table = PeriodicTable(files_path / "Elementos.csv")
         table, elements = periodic_table.get_elements()
 
@@ -21,7 +29,7 @@ class Main(Scene):
             self.add(element)
             replicated_elements.append(ReplicatedElement(element))
         animations = []
-        position_transformer = PositionTransformer(["dia", "do", "quimico"])
+        position_transformer = PositionTransformer(frases, files_path)
         for element in replicated_elements:
             animations.append(element.move_to_assignments_animation(
                 element_assignment, position_transformer))

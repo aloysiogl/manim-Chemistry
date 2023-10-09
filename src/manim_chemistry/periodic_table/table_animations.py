@@ -6,14 +6,15 @@ from pathlib import Path
 
 script_path = Path(__file__).absolute().parent
 files_path = script_path / "manim-Chemistry/examples/element_files"
-# manim -pql animations.py Main
 
 
 class PositionTransformer:
-    def __init__(self, phrases):
-        self.offset_rows = len(phrases)/2
-        max_phrase_length = max([len(phrase) for phrase in phrases])
-        self.offset_cols = max_phrase_length/2
+    def __init__(self, phrases, csv_path):
+        assignment_finder = AssignmentFinder(csv_path)
+        self.offset_rows = (len(phrases)-1)/2
+        max_phrase_length = max(
+            [len(assignment_finder.best_assignment_for_phrase(phrase)) for phrase in phrases])
+        self.offset_cols = (max_phrase_length-1)/2
 
         base_element = MElementObject()
         self.mult_array = np.array(
