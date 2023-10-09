@@ -26,7 +26,7 @@ class Element:
         if isinstance(element, str):
             search_column = "Symbol"
 
-        elif isinstance(element, int) and element < 118:
+        elif isinstance(element, int) and element < 119:
             search_column = "AtomicNumber"
 
         else:
