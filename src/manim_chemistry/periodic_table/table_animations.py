@@ -18,7 +18,7 @@ class PositionTransformer:
 
         base_element = MElementObject()
         self.mult_array = np.array(
-            [base_element.get_width()*vertical_scale, -base_element.get_height()*horizontal_scale, 0])*1.4*0.25
+            [base_element.get_width()*horizontal_scale, -base_element.get_height()*vertical_scale, 0])*1.4*0.25
 
     def get_transformed_position(self, position):
         base_position = np.array(
