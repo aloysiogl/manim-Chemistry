@@ -5,6 +5,7 @@ from .twoD import *
 from .orbitals import *
 from .bohr_atom import *
 from .utils import *
+from .chemical_text import *
 
 from importlib.metadata import PackageNotFoundError, version
 

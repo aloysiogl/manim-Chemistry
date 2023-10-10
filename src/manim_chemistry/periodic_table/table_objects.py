@@ -20,6 +20,7 @@ import pandas as pd
 import numpy as np
 
 from ..element import Element
+from ..utils import AssignmentFinder
 
 
 class MElementObject(VGroup):
@@ -155,24 +156,29 @@ class MElementWithPositions(VGroup):
     def get_atomic_number(self):
         return self.atomic_number
 
-    def get_nearest_element(self, start, melement: MElementObject) -> MElementObject:
+    def get_nearest_element(self, excluding, melement: MElementObject) -> MElementObject:
         nearest_element = None
         nearest_distance = None
+        index = None
         for ind, element in self.melements.items():
-            if ind < start:
+            if ind in excluding:
                 continue
             distance = np.linalg.norm(
                 element.get_center() - melement.get_center())
-            nearest_element = element if nearest_distance is None or distance < nearest_distance else nearest_element
+            nearest_element = element if nearest_element is None or distance < nearest_distance else nearest_element
+            index = ind if index is None or distance < nearest_distance else index
             nearest_distance = distance if nearest_distance is None or distance < nearest_distance else nearest_distance
 
-        return nearest_element
+        return nearest_element, index
 
     def remove_element_from_index(self, index):
         new_melements = {}
+        print(self.melements)
         for i in range(len(self.melements)):
             if i == index:
                 continue
+            if i > index:
+                i -= 1
             new_melements[i] = self.melements[i]
         new_positions = []
         for el in new_melements.values():
@@ -194,27 +200,37 @@ class MElementWithPositions(VGroup):
         if self.atomic_number != els.get_atomic_number():
             raise Exception(
                 "You can't move to an element with different atomic number")
+        indexes_to_remove = []
+        indexes_already_used = []
         for i in range(len(self.melements)):
             curr_element = self.melements[i]
             if i < len(els.melements):
-                assigned_element = els.get_nearest_element(i, curr_element)
+                assigned_element, ind = els.get_nearest_element(
+                    indexes_already_used, curr_element)
                 width = assigned_element.get_width()
                 # TODO: Get opacity directly from the target somehow
                 opacity = MElementObject().opacity
                 should_remove = False
             else:
-                assigned_element = els.get_nearest_element(0, curr_element)
+                assigned_element, ind = els.get_nearest_element(
+                    [], curr_element)
                 opacity = 0
                 should_remove = True
-                self.remove_element_from_index(i)
+                indexes_to_remove.append(i)
             ag = AnimationGroup(curr_element.animate.move_to(
                 assigned_element).scale_to_fit_width(width).set_fill(opacity=opacity), remover=should_remove)
             animations.append(ag)
+            indexes_already_used.append(ind)
 
+        indexes_left_to_use = list(range(len(els.melements)))
+        indexes_left_to_use = [
+            i for i in indexes_left_to_use if i not in indexes_already_used]
+        print(indexes_already_used)
+        print(indexes_left_to_use)
         if len(els) > len(self.melements):
-            for i in range(len(self.melements), len(els)):
+            for i in indexes_left_to_use:
                 target_element = els.melements[i]
-                closest_element = self.get_nearest_element(0, target_element)
+                closest_element, _ = self.get_nearest_element([], target_element)
                 curr_element = self.add_element_in_position(
                     closest_element.get_center())
                 curr_element.scale_to_fit_width(closest_element.get_width())
@@ -225,6 +241,9 @@ class MElementWithPositions(VGroup):
                 ag = AnimationGroup(curr_element.animate.move_to(
                     target_element).scale_to_fit_width(width).set_fill(opacity=opacity), remover=should_remove)
                 animations.append(ag)
+
+        for i in indexes_to_remove:
+            self.remove_element_from_index(i)
 
         return AnimationGroup(*animations)
 

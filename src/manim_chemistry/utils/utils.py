@@ -2,6 +2,65 @@ import numpy as np
 from typing import Dict, Any
 
 
+class AssignmentFinder:
+    def __init__(self, element_file_path):
+        available_atomic_numbers = list(range(1, 119))
+        available_elements = [Element.from_csv_file(element_file_path)
+                              for i in available_atomic_numbers]
+        self.symbol_to_element = {element.symbol.lower(
+        ): element for element in available_elements}
+        self.memoised_assignments = {}
+
+    def best_assignment_for_phrase(self, phrase):
+        if phrase in self.memoised_assignments:
+            return self.memoised_assignments[phrase]
+        if len(phrase) == 0:
+            return []
+        phrase_without_first_letter = phrase[1:]
+        first_letter = phrase[0].lower()
+        if len(phrase) == 1:
+            if first_letter in self.symbol_to_element:
+                return [self.symbol_to_element[first_letter]]
+            return [first_letter]
+        phrase_without_two_first_letters = phrase[2:]
+        two_first_letters = phrase[:2].lower()
+
+        first_assingment = self.best_assignment_for_phrase(
+            phrase_without_first_letter)
+        two_first_assingment = self.best_assignment_for_phrase(
+            phrase_without_two_first_letters)
+        tot_first = self.count_non_element(first_assingment)
+        tot_two_first = self.count_non_element(two_first_assingment)
+
+        if first_letter not in self.symbol_to_element:
+            tot_first += 1
+            first_assingment = [first_letter] + first_assingment
+        else:
+            first_assingment = [
+                self.symbol_to_element[first_letter]] + first_assingment
+
+        if two_first_letters not in self.symbol_to_element:
+            tot_two_first += 2
+            two_first_assingment = [two_first_letters] + two_first_assingment
+        else:
+            two_first_assingment = [
+                self.symbol_to_element[two_first_letters]] + two_first_assingment
+
+        final_assingment = two_first_assingment
+        if tot_first <= tot_two_first:
+            final_assingment = first_assingment
+        self.memoised_assignments[phrase] = final_assingment
+        return final_assingment
+
+    def count_non_element(self, assingment):
+        tot_letters = 0
+        for element in assingment:
+            if isinstance(element, Element):
+                continue
+            tot_letters += 1
+        return tot_letters
+
+
 def mol_parser(file):
     with open(file) as file:
         mol_file = file.readlines()
@@ -20,7 +79,7 @@ def mol_parser(file):
 
     atoms = {}
     bonds = {}
-    for index, line in enumerate(mol_file[3 : 3 + number_of_atoms]):
+    for index, line in enumerate(mol_file[3: 3 + number_of_atoms]):
         line_data = line.split()
         x_position = float(line_data[0])
         y_position = float(line_data[1])
@@ -31,7 +90,7 @@ def mol_parser(file):
             "element": element,
         }
 
-    for line in mol_file[3 + number_of_atoms : 3 + number_of_atoms + number_of_bonds]:
+    for line in mol_file[3 + number_of_atoms: 3 + number_of_atoms + number_of_bonds]:
         line_data = line.split()
         first_atom_index = int(float(line_data[0]))
         second_atom_index = int(float(line_data[1]))
@@ -71,7 +130,8 @@ def mol_parser(file):
                 "bond_to"
             ):
                 atoms[first_atom_index]["bond_to"] = {
-                    second_atom_index: atoms.get(second_atom_index).get("element")
+                    second_atom_index: atoms.get(
+                        second_atom_index).get("element")
                 }
             else:
                 atoms[first_atom_index]["bond_to"][second_atom_index] = atoms.get(

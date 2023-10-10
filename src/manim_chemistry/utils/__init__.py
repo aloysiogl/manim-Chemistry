@@ -1,1 +1,1 @@
-from .utils import mol_parser
+from .utils import mol_parser, AssignmentFinder
