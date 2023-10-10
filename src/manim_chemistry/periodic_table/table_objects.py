@@ -173,7 +173,6 @@ class MElementWithPositions(VGroup):
 
     def remove_element_from_index(self, index):
         new_melements = {}
-        print(self.melements)
         for i in range(len(self.melements)):
             if i == index:
                 continue
@@ -225,12 +224,11 @@ class MElementWithPositions(VGroup):
         indexes_left_to_use = list(range(len(els.melements)))
         indexes_left_to_use = [
             i for i in indexes_left_to_use if i not in indexes_already_used]
-        print(indexes_already_used)
-        print(indexes_left_to_use)
         if len(els) > len(self.melements):
             for i in indexes_left_to_use:
                 target_element = els.melements[i]
-                closest_element, _ = self.get_nearest_element([], target_element)
+                closest_element, _ = self.get_nearest_element(
+                    [], target_element)
                 curr_element = self.add_element_in_position(
                     closest_element.get_center())
                 curr_element.scale_to_fit_width(closest_element.get_width())
@@ -257,12 +255,15 @@ class MElementGroup(VGroup):
                 raise Exception(
                     "More than one element with positions with same atomic number")
             atomic_numbers.add(el.get_atomic_number())
-        self.els = {el.get_atomic_number(): el for el in els}
-        self.add_elements()
+        self.els = {}
+        for el in els:
+            self.add_element(el)
 
-    def add_elements(self):
-        for el in self.els.values():
-            self.add(el)
+    def add_element(self, el: MElementWithPositions):
+        if el.get_atomic_number in self.els:
+            raise Exception("Atomic number already in group")
+        self.els[el.get_atomic_number()] = el
+        self.add(el)
 
     def get_element_by_atomic_numbers(self):
         return self.els
@@ -281,8 +282,11 @@ class MElementGroup(VGroup):
                 animations.append(
                     curr_el.transform_into_element_with_positions(target_el))
             elif atomic_number in els_target:
-                new_els = els_target[atomic_number].copy()
-                animations.append(FadeIn(new_els))
+                new_el = els_target[atomic_number].copy()
+                new_el.set_fill(opacity=0)
+                self.add_element(new_el)
+                animations.append(new_el.animate.set_fill(
+                    opacity=MElementObject().opacity))
             else:
                 animations.append(
                     FadeOut(self.els[atomic_number]))
@@ -290,32 +294,25 @@ class MElementGroup(VGroup):
         return AnimationGroup(*animations)
 
 
-class PeriodicTable(VGroup):
-    # TODO Change to english database
-    def __init__(self, data_file, *vmobjects, **kwargs):
-        VGroup.__init__(self, *vmobjects, **kwargs)
-        self.data_file = data_file
-        self.table = self.add_elements()
+class PeriodicTable(MElementGroup):
+    def __init__(self, data_file_path, *vmobjects, **kwargs):
+        self.data_file_path = data_file_path
+        els = self.get_els()
+        MElementGroup.__init__(self, els, *vmobjects, **kwargs)
 
-        self.add(self.table)
-
-    def add_elements(self):
+    def get_els(self):
         positions = self.elements_position_dict()
         base_element = MElementObject()
         mult_array = np.array(
             [base_element.get_width(), -base_element.get_height(), 0])
 
-        table = VGroup()
+        els = []
         for element, position in positions.items():
             new_position = np.multiply(mult_array, np.array(position))
-            new_element = MElementObject.from_csv_file_data(
-                self.data_file, element
-            ).move_to(new_position)
+            els.append(MElementWithPositions(
+                element, [new_position], self.data_file_path))
 
-            table.add(new_element)
-
-        table.move_to(ORIGIN).scale(0.25)
-        return table
+        return els
 
     def elements_position_dict(self):
         # TODO: Think of a better way of doing this. However, it works and looks good

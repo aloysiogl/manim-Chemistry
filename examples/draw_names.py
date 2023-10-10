@@ -1,4 +1,4 @@
-from manim import Scene, Text, Transform, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
+from manim import Scene, Text, FadeOut, Transform, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
 from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject, MElementGroup
 from  manim_chemistry.chemical_text import MChemicalText
 
@@ -32,6 +32,11 @@ class Main(Scene):
         elements_transform = text.get_element_group().transform_into_group(text2.get_element_group())
         text_transform = Transform(text.get_letter_group(), text2.get_letter_group())
         self.play(elements_transform, text_transform)
+        table = PeriodicTable(element_file_path)
+        table.scale(0.25)
+        table.move_to(ORIGIN)
+        self.play(FadeOut(text.get_letter_group()))
+        self.play(text.get_element_group().transform_into_group(table))
 
 
 class Main1(Scene):
