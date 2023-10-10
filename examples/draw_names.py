@@ -1,6 +1,7 @@
 from manim import Scene, Text, FadeOut, Transform, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
 from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject, MElementGroup
-from  manim_chemistry.chemical_text import MChemicalText
+from manim_chemistry.chemical_text import MChemicalText
+from manim_chemistry.animations import convert_chemical_texts
 
 from pathlib import Path
 
@@ -19,19 +20,19 @@ class Main(Scene):
     def construct(self):
         element_file_path = files_path / "Elementos.csv"
         text = MChemicalText(
-            ["o", "iii", "ii"], element_file_path)
-        text2 = MChemicalText(
-            ["a", "i", "i"], element_file_path)
-        text = MChemicalText(
             ["agradeciment especial", "do", "quimico"], element_file_path)
         text2 = MChemicalText(
-            ["made by aloysio", "do", "quimico"], element_file_path)
+            ["test", "elementos", "quimico"], element_file_path)
+        text3 = MChemicalText(
+            ["lorem ipsum dolor", "sit amet", "conversao"], element_file_path)
         text.move_to(ORIGIN).scale(0.2)
         text2.move_to(ORIGIN).scale(0.3)
+        text3.move_to(ORIGIN).scale(0.3)
         self.add(text)
-        elements_transform = text.get_element_group().transform_into_group(text2.get_element_group())
-        text_transform = Transform(text.get_letter_group(), text2.get_letter_group())
-        self.play(elements_transform, text_transform)
+        animation = convert_chemical_texts(text, text2)
+        self.play(animation)
+        animation = convert_chemical_texts(text, text3)
+        self.play(animation)
         table = PeriodicTable(element_file_path)
         table.scale(0.25)
         table.move_to(ORIGIN)
