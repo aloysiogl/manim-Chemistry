@@ -26,7 +26,7 @@ class MElementObject(VGroup):
         fill_colors=(WHITE, BLUE),
         gradient=10,
         opacity=0.8,
-        text_color=BLACK,
+        text_color=WHITE,
         **kwargs,
     ):
         VGroup.__init__(self, **kwargs)
@@ -93,7 +93,8 @@ class MElementObject(VGroup):
             .next_to(frame_rectangle, DOWN, buff=-0.4)
         )
 
-        ratio = self.frame_name_width_ratio(frame=frame_rectangle, name_text=name_text)
+        ratio = self.frame_name_width_ratio(
+            frame=frame_rectangle, name_text=name_text)
         name_text.scale(ratio)
         name_text = self.max_height_ratio(name_text)
 
@@ -104,8 +105,8 @@ class MElementObject(VGroup):
         if self.atomic_number > 100:
             shifting_ammount += 0.15
 
-        #atomic_number_text.shift(shifting_ammount * RIGHT)
-        #atomic_mass_text.shift(-shifting_ammount * RIGHT)
+        # atomic_number_text.shift(shifting_ammount * RIGHT)
+        # atomic_mass_text.shift(-shifting_ammount * RIGHT)
 
         return VGroup(frame_rectangle, symbol_text, atomic_number_text, atomic_mass_text)
 
@@ -113,7 +114,8 @@ class MElementObject(VGroup):
         # TODO: Add option to set manually colors.
         # TODO: Create a table that adds this data in a prettier way.
         df = pd.read_csv(filename)
-        element = df.loc[df["AtomicNumber"] == atomic_number].squeeze().to_dict()
+        element = df.loc[df["AtomicNumber"] ==
+                         atomic_number].squeeze().to_dict()
 
         return MElementObject(
             atomic_number=atomic_number,
@@ -122,6 +124,11 @@ class MElementObject(VGroup):
             element_symbol=element.get("Symbol"),
             fill_colors=[element.get("Color"), WHITE],
         )
+
+
+class MElementGroup(VGroup):
+    # represents a group of elements in given positions relative to each other, a center position, and a scale
+    pass
 
 
 class PeriodicTable(VGroup):
@@ -136,7 +143,8 @@ class PeriodicTable(VGroup):
     def add_elements(self):
         positions = self.elements_position_dict()
         base_element = MElementObject()
-        mult_array = np.array([base_element.get_width(), -base_element.get_height(), 0])
+        mult_array = np.array(
+            [base_element.get_width(), -base_element.get_height(), 0])
 
         table = VGroup()
         for element, position in positions.items():

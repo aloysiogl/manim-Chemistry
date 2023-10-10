@@ -16,7 +16,7 @@ manim -pqh draw_names.py Main
 
 class Main(Scene):
     def construct(self):
-        phrases = ["dia", "do", "quimico"]
+        phrases = ["agradeciment especial", "do", "quimico"]
         horizontal_scale = 1
         vertical_scale = 1
         finder = PositionFinder(files_path)

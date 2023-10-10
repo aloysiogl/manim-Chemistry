@@ -175,6 +175,8 @@ class PeriodicTable(VGroup):
     def elements_position_dict(self):
         # TODO: Think of a better way of doing this. However, it works and looks good
         positions = {
+            1: [0, 0, 0],
+            2: [17, 0, 0],
             3: [0, 1, 0],
             4: [1, 1, 0],
             5: [12, 1, 0],
