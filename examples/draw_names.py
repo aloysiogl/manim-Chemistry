@@ -1,5 +1,5 @@
-from manim import Scene, Text, Create
-from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement
+from manim import Scene, Text, Create, ORIGIN, RIGHT, UP, DOWN
+from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject
 
 from pathlib import Path
 
@@ -15,6 +15,26 @@ manim -pqh draw_names.py Main
 
 
 class Main(Scene):
+    def construct(self):
+        element_file_path = files_path / "Elementos.csv"
+        positions = [ORIGIN]
+        positions2 = [2*UP*MElementObject().get_height(), 2*DOWN *
+                      MElementObject().get_height()]
+        element_with_positions = MElementWithPositions(
+            atomic_number=1, positions=positions, data_file_path=element_file_path)
+        element_with_positions.scale(0.5).move_to(ORIGIN)
+
+        element_with_positions2 = MElementWithPositions(
+            atomic_number=1, positions=positions2, data_file_path=element_file_path)
+        self.add(element_with_positions)
+        element_with_positions2.scale(1).move_to(ORIGIN)
+        anim = element_with_positions.move_to_element_with_positions(
+            element_with_positions2)
+        self.play(anim, run_time=1)
+        self.wait()
+
+
+class Main2(Scene):
     def construct(self):
         phrases = ["agradeciment especial", "do", "quimico"]
         horizontal_scale = 1

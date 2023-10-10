@@ -1,4 +1,7 @@
+from typing import List
 from manim import (
+    AnimationGroup,
+    MoveToTarget,
     VGroup,
     WHITE,
     BLACK,
@@ -13,6 +16,8 @@ from manim import (
 )
 import pandas as pd
 import numpy as np
+
+from ..element import Element
 
 
 class MElementObject(VGroup):
@@ -126,9 +131,119 @@ class MElementObject(VGroup):
         )
 
 
+class MElementWithPositions(VGroup):
+    def __init__(self, atomic_number, positions, data_file_path, *vmobjects, **kwargs):
+        VGroup.__init__(self, *vmobjects, **kwargs)
+        self.atomic_number = atomic_number
+        self.positions = positions
+        self.melements: MElementObject = {}
+        self.data_file_path = data_file_path
+        self.add_element_in_positions()
+
+    def add_element_in_positions(self):
+        for i in range(len(self.positions)):
+            position = self.positions[i]
+            melement = MElementObject.from_csv_file_data(
+                self.data_file_path, self.atomic_number
+            )
+            melement.move_to(position)
+            self.melements[i] = melement
+            self.add(melement)
+
+    def get_atomic_number(self):
+        return self.atomic_number
+
+    def get_nearest_element(self, start, melement: MElementObject) -> MElementObject:
+        nearest_element = None
+        nearest_distance = None
+        for ind, element in self.melements.items():
+            if ind < start:
+                continue
+            distance = np.linalg.norm(
+                element.get_center() - melement.get_center())
+            nearest_element = element if nearest_distance is None or distance < nearest_distance else nearest_element
+            nearest_distance = distance if nearest_distance is None or distance < nearest_distance else nearest_distance
+
+        return nearest_element
+
+    def remove_element_from_index(self, index):
+        new_melements = {}
+        for i in range(len(self.melements)):
+            if i == index:
+                continue
+            new_melements[i] = self.melements[i]
+        new_positions = []
+        for el in new_melements.values():
+            new_positions.append(el.get_center())
+        self.melements = new_melements
+        self.positions = new_positions
+
+    def add_element_in_position(self, position):
+        melement = MElementObject.from_csv_file_data(
+            self.data_file_path, self.atomic_number
+        )
+        self.melements[len(self.melements)] = melement
+        self.positions.append(position)
+        self.add(melement)
+        return melement
+
+    def move_to_element_with_positions(self, els: 'MElementWithPositions'):
+        animations = []
+        if self.atomic_number != els.get_atomic_number():
+            raise Exception(
+                "You can't move to an element with different atomic number")
+        for i in range(len(self.melements)):
+            curr_element = self.melements[i]
+            if i < len(els.melements):
+                assigned_element = els.get_nearest_element(i, curr_element)
+                width = assigned_element.get_width()
+                # TODO: Get opacity directly from the target somehow
+                opacity = MElementObject().opacity
+                should_remove = False
+            else:
+                assigned_element = els.get_nearest_element(0, curr_element)
+                opacity = 0
+                should_remove = True
+                self.remove_element_from_index(i)
+            ag = AnimationGroup(curr_element.animate.move_to(
+                assigned_element).scale_to_fit_width(width).set_fill(opacity=opacity), remover=should_remove)
+            animations.append(ag)
+
+        if len(els) > len(self.melements):
+            for i in range(len(self.melements), len(els)):
+                target_element = els.melements[i]
+                closest_element = self.get_nearest_element(0, target_element)
+                curr_element = self.add_element_in_position(
+                    closest_element.get_center())
+                curr_element.scale_to_fit_width(closest_element.get_width())
+                curr_element.set_fill(opacity=0)
+                opacity = MElementObject().opacity
+                should_remove = False
+                width = target_element.get_width()
+                ag = AnimationGroup(curr_element.animate.move_to(
+                    target_element).scale_to_fit_width(width).set_fill(opacity=opacity), remover=should_remove)
+                animations.append(ag)
+
+        return AnimationGroup(*animations)
+
+
 class MElementGroup(VGroup):
-    # represents a group of elements in given positions relative to each other, a center position, and a scale
-    pass
+    def __init__(self, els: List[MElementWithPositions]):
+        atomic_numbers = set()
+        for el in els:
+            if el.get_atomic_number() in atomic_numbers:
+                raise Exception(
+                    "More than one element with positions with same atomic number")
+            atomic_numbers.add(el.get_atomic_number())
+        self.els = els
+        self.add_elements()
+
+    def add_elements(self):
+        for el in self.els:
+            self.add(el)
+
+    def transform_into_group(self, gruop: 'MElementGroup'):
+        pass
 
 
 class PeriodicTable(VGroup):
