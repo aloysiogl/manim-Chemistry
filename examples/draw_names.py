@@ -1,5 +1,5 @@
-from manim import Scene, Text, Create, ORIGIN, RIGHT, UP, DOWN
-from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject
+from manim import Scene, Text, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
+from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject, MElementGroup
 
 from pathlib import Path
 
@@ -17,20 +17,25 @@ manim -pqh draw_names.py Main
 class Main(Scene):
     def construct(self):
         element_file_path = files_path / "Elementos.csv"
-        positions = [ORIGIN]
-        positions2 = [2*UP*MElementObject().get_height(), 2*DOWN *
+        pos1 = [ORIGIN]
+        pos2  = [2*UP*MElementObject().get_height(), 2*DOWN *
                       MElementObject().get_height()]
-        element_with_positions = MElementWithPositions(
-            atomic_number=1, positions=positions, data_file_path=element_file_path)
-        element_with_positions.scale(0.5).move_to(ORIGIN)
-
-        element_with_positions2 = MElementWithPositions(
-            atomic_number=1, positions=positions2, data_file_path=element_file_path)
-        self.add(element_with_positions)
-        element_with_positions2.scale(1).move_to(ORIGIN)
-        anim = element_with_positions.move_to_element_with_positions(
-            element_with_positions2)
-        self.play(anim, run_time=1)
+        pos3 = [2*LEFT*MElementObject().get_height()]
+        pos4  = [2*RIGHT*MElementObject().get_height()]
+        el1 = MElementWithPositions(
+            atomic_number=1, positions=pos1, data_file_path=element_file_path)
+        el2 = MElementWithPositions(
+            atomic_number=2, positions=pos2 , data_file_path=element_file_path)
+        el3 = MElementWithPositions(
+            atomic_number=1, positions=pos3, data_file_path=element_file_path)
+        el4 = MElementWithPositions(
+            atomic_number=3, positions=pos4 , data_file_path=element_file_path)
+        gr1 = MElementGroup([el1, el2])
+        gr1.move_to(ORIGIN).scale(0.5)
+        gr2 = MElementGroup([el3, el4])
+        gr2.move_to(ORIGIN).scale(0.5)
+        self.add(gr1)
+        self.play(gr1.transform_into_group(gr2))
         self.wait()
 
 

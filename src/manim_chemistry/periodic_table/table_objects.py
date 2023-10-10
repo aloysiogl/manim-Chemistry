@@ -1,6 +1,8 @@
 from typing import List
 from manim import (
     AnimationGroup,
+    FadeIn,
+    FadeOut,
     MoveToTarget,
     VGroup,
     WHITE,
@@ -187,7 +189,7 @@ class MElementWithPositions(VGroup):
         self.add(melement)
         return melement
 
-    def move_to_element_with_positions(self, els: 'MElementWithPositions'):
+    def transform_into_element_with_positions(self, els: 'MElementWithPositions'):
         animations = []
         if self.atomic_number != els.get_atomic_number():
             raise Exception(
@@ -228,22 +230,45 @@ class MElementWithPositions(VGroup):
 
 
 class MElementGroup(VGroup):
-    def __init__(self, els: List[MElementWithPositions]):
+    def __init__(self, els: List[MElementWithPositions], *vmobjects, **kwargs):
+        VGroup.__init__(self, *vmobjects, **kwargs)
         atomic_numbers = set()
         for el in els:
             if el.get_atomic_number() in atomic_numbers:
                 raise Exception(
                     "More than one element with positions with same atomic number")
             atomic_numbers.add(el.get_atomic_number())
-        self.els = els
+        self.els = {el.get_atomic_number(): el for el in els}
         self.add_elements()
 
     def add_elements(self):
-        for el in self.els:
+        for el in self.els.values():
             self.add(el)
 
-    def transform_into_group(self, gruop: 'MElementGroup'):
-        pass
+    def get_element_by_atomic_numbers(self):
+        return self.els
+
+    def transform_into_group(self, group: 'MElementGroup'):
+        els_target = group.get_element_by_atomic_numbers()
+        atomic_numbers = set()
+        atomic_numbers.update(self.els.keys())
+        atomic_numbers.update(els_target.keys())
+
+        animations = []
+        for atomic_number in atomic_numbers:
+            if atomic_number in els_target and atomic_number in self.els:
+                curr_el = self.els[atomic_number]
+                target_el = els_target[atomic_number]
+                animations.append(
+                    curr_el.transform_into_element_with_positions(target_el))
+            elif atomic_number in els_target:
+                new_els = els_target[atomic_number].copy()
+                animations.append(FadeIn(new_els))
+            else:
+                animations.append(
+                    FadeOut(self.els[atomic_number]))
+                self.els.pop(atomic_number)
+        return AnimationGroup(*animations)
 
 
 class PeriodicTable(VGroup):
