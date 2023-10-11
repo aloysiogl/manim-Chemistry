@@ -1,1 +1,1 @@
-from .utils import mol_parser, AssignmentFinder
+from .utils import mol_parser, get_symbol_to_atomic_number

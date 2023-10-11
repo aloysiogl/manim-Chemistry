@@ -1,4 +1,5 @@
-from manim import Scene, Text, FadeOut, Transform, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
+import numpy as np
+from manim import Scene, Text, Rotate, FadeOut, FadeIn, Transform, Create, ORIGIN, RIGHT, UP, DOWN, LEFT
 from manim_chemistry.periodic_table import PositionFinder, PeriodicTable, PositionTransformer, ReplicatedElement, MElementWithPositions, MElementObject, MElementGroup
 from manim_chemistry.chemical_text import MChemicalText
 from manim_chemistry.animations import convert_chemical_texts
@@ -16,15 +17,47 @@ manim -pqh draw_names.py Main
 """
 
 
+num_points = 6
+radius = 5
+center = (0.0, 0.0)
+
+theta = np.linspace(0, 2*np.pi, num_points, endpoint=False)
+x = center[0] + radius * np.cos(theta)
+y = center[1] + radius * np.sin(theta)
+
+
 class Main(Scene):
     def construct(self):
         element_file_path = files_path / "Elementos.csv"
+        elements = ["ar", "c", "i", "o", "ar", "o"]
+        els = []
+        for i in range(len(elements)):
+            an = elements[i]
+            xv = x[i]
+            yv = y[i]
+            els.append((an, (xv, yv)))
+        gr = MElementGroup.from_elements_and_positions_list(els)
+        gr.move_to(ORIGIN).scale(0.5)
         text = MChemicalText(
-            ["agradeciment especial", "do", "quimico"], element_file_path)
+            ["marcio"])
+        text.move_to(ORIGIN).scale(1)
+        self.add(gr)
+        self.play(Rotate(gr, angle=2*np.pi), run_time=5)
+        self.play(gr.animate.scale(0.1))
+        anim = gr.transform_into_group(text.get_element_group())
+        anim2 = FadeIn(text.get_letter_group())
+        self.play(anim, anim2, run_time=2)
+
+
+class Mainn(Scene):
+    def construct(self):
+        element_file_path = files_path / "Elementos.csv"
+        text = MChemicalText(
+            ["agradeciment especial", "do", "quimico"])
         text2 = MChemicalText(
-            ["test", "elementos", "quimico"], element_file_path)
+            ["test", "elementos", "quimico"])
         text3 = MChemicalText(
-            ["lorem ipsum dolor", "sit amet", "conversao"], element_file_path)
+            ["lorem ipsum dolor", "sit amet", "conversao"])
         text.move_to(ORIGIN).scale(0.2)
         text2.move_to(ORIGIN).scale(0.3)
         text3.move_to(ORIGIN).scale(0.3)

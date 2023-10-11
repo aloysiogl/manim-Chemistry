@@ -3,28 +3,34 @@ from typing import List
 from manim import VGroup, Text
 from ..element import Element
 from ..periodic_table import MElementWithPositions, MElementGroup, MElementObject
+from pathlib import Path
+
+current_file_path = Path(__file__).absolute().parent
 
 
 class MChemicalText(VGroup):
-    def __init__(self, phrases: List[str], elements_path, letter_scale=1.2, *vmobjects, **kwargs):
+    def __init__(self, phrases: List[str], horizontal_scale=1, vertical_scale=1, letter_scale=1.2, *vmobjects, **kwargs):
         VGroup.__init__(self, *vmobjects, **kwargs)
-        position_finder = PositionFinder(elements_path)
-        self.elements_path = elements_path
+        self.elements_path = current_file_path.parent.parent.parent / "assets/Elements_EN.csv"
+        position_finder = PositionFinder(self.elements_path)
         self.element_assignments, self.letter_assignments = position_finder.get_assigments(
             phrases)
         self.element_group = None
         self.letter_group = None
         self.letter_scale = letter_scale
+        self.scale_factor = np.array([horizontal_scale, vertical_scale, 1])
         self.add_letter_and_element_groups()
 
     def add_letter_and_element_groups(self):
         els = []
         for atomic_number, positions in self.element_assignments.items():
+            positions = [position*self.scale_factor for position in positions]
             els.append(MElementWithPositions(
                 atomic_number, positions, self.elements_path))
         self.element_group = MElementGroup(els)
         self.letter_group = VGroup()
         for letter, positions in self.letter_assignments.items():
+            positions = [position*self.scale_factor for position in positions]
             for position in positions:
                 text = Text(letter.upper()).scale(1).move_to(position)
                 text.scale(MElementObject().width * self.letter_scale)

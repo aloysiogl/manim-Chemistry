@@ -18,9 +18,13 @@ from manim import (
 )
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 from ..element import Element
-from ..utils import AssignmentFinder
+from ..utils import get_symbol_to_atomic_number
+
+current_file_path = Path(__file__).absolute().parent
+elements_path = current_file_path.parent.parent.parent / "assets/Elements_EN.csv"
 
 
 class MElementObject(VGroup):
@@ -258,6 +262,24 @@ class MElementGroup(VGroup):
         self.els = {}
         for el in els:
             self.add_element(el)
+
+    def from_elements_and_positions_list(elements_with_positions):
+        an_to_positions = {}
+        symbol_to_atomic_number = get_symbol_to_atomic_number(elements_path)
+        for symbol, position in elements_with_positions:
+            lowercased_symbol = symbol.lower()
+            if lowercased_symbol not in symbol_to_atomic_number:
+                raise Exception("Invalid periodic table symbol")
+            an = symbol_to_atomic_number[lowercased_symbol]
+            if an not in an_to_positions:
+                an_to_positions[an] = []
+            an_to_positions[an].append(np.array([position[0], position[1], 0]))
+
+        els = []
+        for an, positions in an_to_positions.items():
+            els.append(MElementWithPositions(an, positions, elements_path))
+
+        return MElementGroup(els)
 
     def add_element(self, el: MElementWithPositions):
         if el.get_atomic_number in self.els:
